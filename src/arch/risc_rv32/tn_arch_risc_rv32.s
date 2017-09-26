@@ -212,3 +212,18 @@ _tn_arch_inside_isr:
 # do we have ustatus ?
 #     add a0, zero, zero
 #     ret
+
+/* disables all interrupts and 
+returns previous content of uie register(status register)
+* 
+*/
+_tn_arch_sr_save_int_dis:
+    csrrw a0, 0x4, zero
+    ret
+
+/* restores status register(uie register)
+to the provided value
+*/
+_tn_arch_sr_restore:
+    csrrw zero, 0x4, a0
+    ret
