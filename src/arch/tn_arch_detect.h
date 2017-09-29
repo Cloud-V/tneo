@@ -98,6 +98,10 @@
 
 #  define __TN_ARCH_PIC32MX__
 
+#elif defined(__RISC_V_RV32i__)
+
+#define __TN_ARCH_RISC_V_RV32i__
+
 #elif defined (__ARMCC_VERSION)
 
 #  define __TN_ARCH_CORTEX_M__

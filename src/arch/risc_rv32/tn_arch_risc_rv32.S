@@ -6,6 +6,7 @@
 .extern  _tn_next_task_to_run
 .extern  IFS0
 .extern  __tn_sys_on_context_switch
+.extern tn_tick_int_processing
 
 
 /* Public functions declared in this file */
@@ -20,11 +21,29 @@
 .global  _tn_arch_sr_restore
 .global  _tn_arch_int_dis
 .global  _tn_arch_int_en
+.global  tn_arch_sched_dis_save
+.global tn_arch_sched_restore
 
 /* constants */
 .equ context_size, 128
 
 /* function implementations*/
+
+/**
+called whenever the system timer reaches 0 and therefore
+an interrupt fires to take back control from user thread.
+
+make sure not to write more than 4 instructions within this function
+since the interrupt vector can only fit 4 instructions. any additional instruction will  be 
+overridden by the code of the next interrupt handler
+**/
+.section .timer_vector1
+_tn_arch_timer_handler:
+    j tn_tick_int_processing 
+
+; _tn_arch_ecall_handler:
+
+
 
 /*
 * ------------------------------------------------------------------------
@@ -210,8 +229,8 @@ _tn_arch_context_switch_pend:
 */
 _tn_arch_inside_isr:
 # do we have ustatus ?
-#     add a0, zero, zero
-#     ret
+     add a0, zero, zero
+     ret
 
 /* disables all interrupts and 
 returns previous content of uie register(status register)
@@ -227,3 +246,18 @@ to the provided value
 _tn_arch_sr_restore:
     csrrw zero, 0x4, a0
     ret
+
+/*
+ * See comments in the file `tn_arch.h`
+ */
+tn_arch_sched_dis_save:
+    csrrci a0, 0x4, 0x2 # read timer bit and clear to disable scheduler
+    andi a0, a0, 0x2 # make sure to mask unnessary bits
+    ret
+
+/*
+ * See comments in the file `tn_arch.h`
+ */
+tn_arch_sched_restore:
+    csrrs zero, 0x4, a0 # restore timer status to given state
+    ret                 

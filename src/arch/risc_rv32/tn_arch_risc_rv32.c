@@ -17,7 +17,7 @@
  ******************************************************************************/
 
 /*
- * For comments on these variables, see the file tn_arch_pic32.h
+ * For comments on these variables, see the file tn_arch_risc_rv32.h
  */
 void *tn_rv32_user_sp;
 void *tn_rv32_int_sp;
@@ -34,7 +34,7 @@ void *tn_rv32_int_sp;
     tn_rv32_int_sp = int_stack + int_stack_size/*'full desc stack' model*/;
 
     // enable interrupts
-    _tn_arch_int_en(); 
+    tn_arch_int_en(); 
  //-- perform first context switch
  _tn_arch_context_switch_now_nosave();
 }
@@ -54,6 +54,7 @@ void *tn_rv32_int_sp;
     TN_UWord *cur_stack_pt = stack_high_addr;
 
     /**setting the value of ra register to address of task exit
+     * so we can exit the task after completing it's execution
     **/
     *cur_stack_pt = (TN_UWord)_tn_task_exit_nodelete; 
     //-- UEPC: address that PC is set to when context switch is done

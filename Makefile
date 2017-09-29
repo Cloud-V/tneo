@@ -28,6 +28,9 @@
 #
 #        xc16
 #
+#     For RSIC V, only one value is valid:
+#       rv32i
+#
 #
 #
 #  Example invocation:
@@ -35,8 +38,8 @@
 #     $ make TN_ARCH=cortex_m3 TN_COMPILER=arm-none-eabi-gcc
 #
 
-CFLAGS_COMMON = -Wall -Wunused-parameter -Werror -ffunction-sections -fdata-sections -g3 -Os
-
+#CFLAGS_COMMON = -Wall -Wunused-parameter -Werror -ffunction-sections -fdata-sections -g3 -Os
+CFLAGS_COMMON = -Wall  -Werror -ffunction-sections -fdata-sections -g3 -Os
 
 
 
@@ -91,8 +94,30 @@ ifeq ($(TN_ARCH), $(filter $(TN_ARCH), cortex_m0 cortex_m0plus cortex_m1 cortex_
 
 endif
 
+#---------------------------------------------------------------------------
+# RISC V RV32
+#---------------------------------------------------------------------------
+ifeq ($(TN_ARCH), $(filter $(TN_ARCH), rv32i))
+   TN_ARCH_DIR = risc_rv32
 
+   ifeq ($(TN_COMPILER), $(filter $(TN_COMPILER), riscv64-unknown-elf-gcc))
 
+      ifeq ($(TN_ARCH), rv32i)
+         RV32I_FLAGS = -march=rv32i -mabi=ilp32 -nostdlib -D __RISC_V_RV32i__
+      endif
+
+      ifeq ($(TN_COMPILER), riscv64-unknown-elf-gcc)
+         CC = riscv64-unknown-elf-gcc
+         AR = riscv64-unknown-elf-ar
+         CFLAGS = $(RV32I_FLAGS) $(CFLAGS_COMMON) -g -x c -std=c99
+         ASFLAGS = $(RV32I_FLAGS)
+         TN_COMPILER_VERSION_CMD := $(CC) --version
+
+         BINARY_CMD = $(AR) -r $(BINARY) $(OBJS)
+      endif
+
+   endif
+endif
 
 #---------------------------------------------------------------------------
 # PIC32 series
