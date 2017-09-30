@@ -10,7 +10,7 @@
 ******************************************************************************/
  
  //-- gp: provided by linker
- extern unsigned long _gp;
+//  extern unsigned long _gp;
 
 /*******************************************************************************
  *    PROTECTED DATA
@@ -21,6 +21,9 @@
  */
 void *tn_rv32_user_sp;
 void *tn_rv32_int_sp;
+
+// tn_arch 
+void tn_arch_enable_timer();
 
 /*******************************************************************************
  *    IMPLEMENTATION
@@ -33,10 +36,15 @@ void *tn_rv32_int_sp;
 { //-- set interrupt's top of the stack
     tn_rv32_int_sp = int_stack + int_stack_size/*'full desc stack' model*/;
 
+
     // enable interrupts
     tn_arch_int_en(); 
- //-- perform first context switch
- _tn_arch_context_switch_now_nosave();
+    //-- perform first context switch
+
+    //enable timer
+    tn_arch_enable_timer();
+
+    _tn_arch_context_switch_now_nosave();
 }
 
 /*
@@ -52,7 +60,13 @@ void *tn_rv32_int_sp;
     )
 {
     TN_UWord *cur_stack_pt = stack_high_addr;
-
+    /**  the size of the stack is 'context_size' mentioned in 
+    * file 'tn_arch_risc_rv32.s' divided by register size + 1 since we 
+        need to point to boundary location rather than the last element 
+        in the stack
+    **/ 
+    cur_stack_pt -= 33;
+    
     /**setting the value of ra register to address of task exit
      * so we can exit the task after completing it's execution
     **/
@@ -64,13 +78,8 @@ void *tn_rv32_int_sp;
     //-- a0 - task's function argument 
     *(cur_stack_pt + 8) = (TN_UWord)param; 
     // put value provided by linker for global pointer
-    *(cur_stack_pt + 1) = (TN_UWord)&_gp; 
-    /** we know that the size of the stack is context_size mentioned in 
-    * file 'tn_arch_risc_rv32.s' divided by register size + 1 since we 
-        need to point to boundary location rather than the last element 
-        in the stack
-    **/
-    cur_stack_pt += 33; 
+    // *(cur_stack_pt + 1) = (TN_UWord)&_gp; 
+    
 
     _TN_UNUSED(stack_low_addr);
     return cur_stack_pt;

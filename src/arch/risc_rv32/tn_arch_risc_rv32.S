@@ -4,45 +4,28 @@
 
 .extern  _tn_curr_run_task
 .extern  _tn_next_task_to_run
-.extern  IFS0
-.extern  __tn_sys_on_context_switch
+.extern  _tn_sys_on_context_switch
 .extern tn_tick_int_processing
 
 
 /* Public functions declared in this file */
 
-.global  __INT0Interrupt
-.global  __tn_arch_context_switch_now_nosave
-.global  __tn_arch_context_switch_pend
-.global  __tn_arch_is_int_disabled
-.global  __tn_arch_inside_isr
-.global  __tn_p24_ffs_asm
-.global  _tn_arch_sr_save_int_dis
-.global  _tn_arch_sr_restore
-.global  _tn_arch_int_dis
-.global  _tn_arch_int_en
+.global  _tn_arch_context_switch_now_nosave
+.global  _tn_arch_context_switch_pend
+.global  _tn_arch_is_int_disabled
+.global  _tn_arch_inside_isr
+.global  tn_arch_sr_save_int_dis
+.global  tn_arch_sr_restore
+.global  tn_arch_int_dis
+.global  tn_arch_int_en
 .global  tn_arch_sched_dis_save
 .global tn_arch_sched_restore
+.global tn_arch_enable_timer
 
 /* constants */
 .equ context_size, 128
 
 /* function implementations*/
-
-/**
-called whenever the system timer reaches 0 and therefore
-an interrupt fires to take back control from user thread.
-
-make sure not to write more than 4 instructions within this function
-since the interrupt vector can only fit 4 instructions. any additional instruction will  be 
-overridden by the code of the next interrupt handler
-**/
-.section .timer_vector1
-_tn_arch_timer_handler:
-    j tn_tick_int_processing 
-
-; _tn_arch_ecall_handler:
-
 
 
 /*
@@ -56,7 +39,7 @@ _tn_arch_timer_handler:
 *
 * See comments in tn_arch.h
 */
-__tn_arch_context_switch_now_nosave:
+_tn_arch_context_switch_now_nosave:
     la x5, _tn_curr_run_task            /* x5 = &_tn_curr_run_task */     
     lw x6, _tn_next_task_to_run         /* x6 = _tn_next_task_to_run */
     lw sp, 0(x6)                        /* set sp to next task's stack */
@@ -70,21 +53,28 @@ __tn_arch_context_switch_now_nosave:
     * - a0: _tn_curr_run_task
     * - a1: _tn_next_task_to_run
     */
-    jal __tn_sys_on_context_switch
+    jal 
 #endif
     
     sw x6, 0(x5)    /* _tn_curr_run_task = _tn_next_task_to_run */
-    jal x0, _tn_arch_sr_restore
+    jal x0, tn_arch_sr_restore
 
 
 # disables all interrupts unconditionally
-_tn_arch_int_dis:
+tn_arch_int_dis:
     CSRRWI zero, 0x4, 0x1 # disable all interrupts
     ret
 
 # enables all interrupts uncondtionally
-_tn_arch_int_en:
+tn_arch_int_en:
     CSRRWI x0, 0x4, 0x1 #  enable gie flag
+    ret
+
+/** turns on timer so that kernel can pre-empt tasks every time quantum
+*/
+tn_arch_enable_timer:
+    addi x1, x0, 1000
+    csrrw x0, 0xc01, x1
     ret
 
 /* 
@@ -162,7 +152,7 @@ cs0_int_handler:
    jal     _tn_sys_on_context_switch
 #endif
     
-    sw      $x2, 0($x1)            /* _tn_curr_run_task = _tn_next_task_to_run */
+    sw      x2, 0(x1)            /* _tn_curr_run_task = _tn_next_task_to_run */
     # TODO: check if there are bits to disable after handling interrupt
 
 tn_restore_context:
@@ -236,14 +226,14 @@ _tn_arch_inside_isr:
 returns previous content of uie register(status register)
 * 
 */
-_tn_arch_sr_save_int_dis:
+tn_arch_sr_save_int_dis:
     csrrw a0, 0x4, zero
     ret
 
 /* restores status register(uie register)
 to the provided value
 */
-_tn_arch_sr_restore:
+tn_arch_sr_restore:
     csrrw zero, 0x4, a0
     ret
 
@@ -261,3 +251,41 @@ tn_arch_sched_dis_save:
 tn_arch_sched_restore:
     csrrs zero, 0x4, a0 # restore timer status to given state
     ret                 
+
+/************************************************************
+*   interrupt handlers
+*************************************************************
+
+/**
+called whenever the system timer reaches 0 and therefore
+an interrupt fires to take back control from user thread.
+
+make sure not to write more than 4 instructions within this function
+since the interrupt vector can only fit 4 instructions. any additional instruction will  be 
+overridden by the code of the next interrupt handler
+**/
+.section .timer_vector
+_tn_arch_timer_handler:
+    j tn_tick_int_processing 
+
+/** ecall interrupt handler, unsed for now
+**/
+.section .ecall_vector
+_tn_arch_ecall_handler:
+    nop
+    nop
+    nop
+    nop
+
+.section .ebreak_vector:
+_tn_arch_ebreak_handler:
+    nop
+    nop
+    nop
+    nop
+.section .extern_int_vector:
+_tn_arch_extern_int_handler:
+    nop
+    nop
+    nop
+    nop
