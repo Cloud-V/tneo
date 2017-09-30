@@ -39,7 +39,7 @@
 #
 
 #CFLAGS_COMMON = -Wall -Wunused-parameter -Werror -ffunction-sections -fdata-sections -g3 -Os
-CFLAGS_COMMON = -Wall  -Werror -ffunction-sections -fdata-sections -g3 -Os
+CFLAGS_COMMON = -Wall  -ffunction-sections -fdata-sections -static  -lgcc -nostdlib -Os
 
 
 
@@ -103,13 +103,13 @@ ifeq ($(TN_ARCH), $(filter $(TN_ARCH), rv32i))
    ifeq ($(TN_COMPILER), $(filter $(TN_COMPILER), riscv64-unknown-elf-gcc))
 
       ifeq ($(TN_ARCH), rv32i)
-         RV32I_FLAGS = -march=rv32i -mabi=ilp32 -nostdlib -D __RISC_V_RV32i__
+         RV32I_FLAGS = -march=rv32i -mabi=ilp32 -D __RISC_V_RV32i__
       endif
 
       ifeq ($(TN_COMPILER), riscv64-unknown-elf-gcc)
          CC = riscv64-unknown-elf-gcc
          AR = riscv64-unknown-elf-ar
-         CFLAGS = $(RV32I_FLAGS) $(CFLAGS_COMMON) -g -x c -std=c99
+         CFLAGS = $(RV32I_FLAGS) $(CFLAGS_COMMON) -x c -std=c99
          ASFLAGS = $(RV32I_FLAGS)
          TN_COMPILER_VERSION_CMD := $(CC) --version
 
@@ -135,7 +135,7 @@ ifeq ($(TN_ARCH), $(filter $(TN_ARCH), pic32mx))
       ifeq ($(TN_COMPILER), xc32)
          CC = xc32-gcc
          AR = xc32-ar
-         CFLAGS = $(PIC32MX_FLAGS) $(CFLAGS_COMMON) -g -x c -std=c99
+         CFLAGS = $(PIC32MX_FLAGS) $(CFLAGS_COMMON)  c -std=c99
          ASFLAGS = $(PIC32MX_FLAGS)
          TN_COMPILER_VERSION_CMD := $(CC) --version
 

@@ -62,7 +62,7 @@
 
 //-- for memcmp() and memset() that is used inside the macro
 //   `_TN_BUILD_CFG_STRUCT_FILL()`
-#include <string.h>
+#include "string.h"
 
 //-- self-check 
 #if !defined(TN_PRIORITIES_MAX_CNT)

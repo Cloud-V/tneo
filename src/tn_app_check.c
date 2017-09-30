@@ -53,7 +53,7 @@
 
 //-- std header for memset() that is used inside the macro
 //   `_TN_BUILD_CFG_STRUCT_FILL()`
-#include <string.h>
+#include "string.h"
 
 
 

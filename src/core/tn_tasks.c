@@ -56,7 +56,7 @@
 #include "tn_mutex.h"
 
 //-- std header for memset() and memcpy()
-#include <string.h>
+#include "string.h"
 
 
 

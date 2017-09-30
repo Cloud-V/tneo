@@ -263,7 +263,7 @@ typedef  unsigned int               TN_UIntPtr;
  * this counter is mainly due to the fact that the kernel provides users with the option to check
  * whether they are in a system ISR or not
  */
-int interrupt_nest_count = 0;
+// int interrupt_nest_count = 0;
 
 
 #ifdef __cplusplus
