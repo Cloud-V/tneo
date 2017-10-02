@@ -1,8 +1,6 @@
-
 #include "tn.h"
 #include <string.h>
 #include "tn_app_check.c"
-
 
 //-- idle task stack size, in words
 #define IDLE_TASK_STACK_SIZE          (TN_MIN_STACK_SIZE + 32)
