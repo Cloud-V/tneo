@@ -39,7 +39,7 @@
 #
 
 #CFLAGS_COMMON = -Wall -Wunused-parameter -Werror -ffunction-sections -fdata-sections -g3 -Os
-CFLAGS_COMMON = -Wall  -ffunction-sections -fdata-sections -static  -lgcc -nostdlib -Os
+CFLAGS_COMMON = -Wall  -static -nostdlib -nostartfiles  -Os
 
 
 

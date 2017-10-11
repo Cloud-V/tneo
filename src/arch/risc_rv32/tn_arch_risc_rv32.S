@@ -64,41 +64,41 @@ _tn_arch_context_switch_now_nosave:
 
 # disables all interrupts unconditionally
 tn_arch_int_dis:
-    CSRRWI zero, 0x4, 0x1 # disable all interrupts
+    CSRRW zero, 0x4, zero # disable all interrupts
     ret
 
 # enables all interrupts uncondtionally
 tn_arch_int_en:
-    CSRRWI x0, 0x4, 0x1 #  enable gie flag
+    addi t0, x0, -1 # set all bits to one
+    CSRRW x0, 0x4, t0 #  enable gie flag
     ret
 
 /** turns on timer so that kernel can pre-empt tasks every time quantum
 */
 tn_arch_enable_timer:
-    addi x1, x0, 1000
+    addi x1, x0, 100
     csrrw x0, 0xc01, x1
     ret
 
 /* 
  check if interrupts are disabled
- return 1 if interrupts are enabled, 0 otherwise
+ return 1 if interrupts are disabled, 0 otherwise
  */
 _tn_arch_is_int_disabled:
-    CSRRS a0,0x4, zero   #read interrupt status
-    andi  a0,a0,0x1      #
+    CSRRW a0,0x4, zero   #read interrupt status
+    CSRRW x0,0x4, a0     #restore interrupt status
+    andi  a0,a0,0x1      #check if global interrupts are enabled
     xori  a0,a0,0x1      #invert least significant bit
     ret
 
 /*
 * ------------------------------------------------------------------------
-* cs0_int_handler()
-*
-* Core Software Interrupt: this interrupt's flag is set by
-* _tn_arch_context_switch_pend() when the kernel needs to perform
-* context switch.
-*
+* perform_context_switch()
+* we don't have software interrupts
+* its currently called directly when a context switch is pending,
+* will find a software workaround to allow pending if problems arise
 */
-cs0_int_handler:
+perform_context_switch:
     addi sp, sp, context_size
 
     #store all general purpose registers to the stack
@@ -158,8 +158,8 @@ cs0_int_handler:
     # TODO: check if there are bits to disable after handling interrupt
 
 tn_restore_context:
-    sw x31, 120(sp) # load epc from proocess stack
-    csrrc zero, 65, x31 # write epc and discard values read
+    lw x31, 120(sp) # load epc from proocess stack
+    CSRRW zero, 65, x31 # restore epc and ignore value read
 
     lw x1, 0(sp)
     lw x3, 4(sp)
@@ -207,8 +207,8 @@ tn_restore_context:
 _tn_arch_context_switch_pend:
     # todo: verify actual behavior, might need to use specific interrupt code
     # rather than zero for system interrupt code
-    add a0, zero, zero
-    ecall   # perform system interrupt for context switching
+    
+    j perform_context_switch   # perform system interrupt for context switching
 
 /**
 * Should return 1 if <i>system ISR</i> is currently running, 0 otherwise.
@@ -243,15 +243,19 @@ tn_arch_sr_restore:
  * See comments in the file `tn_arch.h`
  */
 tn_arch_sched_dis_save:
-    csrrci a0, 0x4, 0x2 # read timer bit and clear to disable scheduler
-    andi a0, a0, 0x2 # make sure to mask unnessary bits
+    csrrw a0, 0x4, x0 # disable all interrupts since 
+    # the scheduler isn't using software interrupts
+    # for context switching, we might need to add a flag
+    # to allow the kernel to run, but avoid performing context switching
+    
+    # andi a0, a0, 0x2 # make sure to mask unnessary bits
     ret
 
 /*
  * See comments in the file `tn_arch.h`
  */
 tn_arch_sched_restore:
-    csrrs zero, 0x4, a0 # restore timer status to given state
+    csrrw zero, 0x4, a0 # restore all interrupts to previous state
     ret                 
 
 /************************************************************
