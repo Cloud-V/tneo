@@ -50,14 +50,14 @@ _start:
 **/
 .org 0x10
 _tn_arch_ecall_handler:
-    nop
+    uret
     nop
     nop
     nop
 
 /** .section .ebreak_vector: **/
 _tn_arch_ebreak_handler:
-    nop
+    uret
     nop
     nop
     nop
@@ -87,7 +87,7 @@ _tn_arch_extern_int_handler:
     nop
     nop
     nop
-    nop
+    uret
 
 boot_strap:
 	li      x4, 0x7 #{eie, tie, gie}
