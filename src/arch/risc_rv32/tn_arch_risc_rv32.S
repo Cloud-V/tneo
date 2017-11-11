@@ -152,8 +152,8 @@ tn_arch_int_en:
 /** turns on timer so that kernel can pre-empt tasks every time quantum
 */
 tn_arch_enable_timer:
-    addi x1, x0, 100
-    csrrw x0, 0xc01, x1
+    addi t0, x0, 0x7ff
+    csrrw x0, 0xc01, t0
     ret
 
 /* 
