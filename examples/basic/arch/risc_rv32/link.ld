@@ -1,54 +1,47 @@
-ENTRY(main)
+ENTRY(_start)
+
 
 MEMORY
 {
     ram :
         ORIGIN = 0x00000000,
-        LENGTH = 4096
+        LENGTH = 20K
+    stack :
+        ORIGIN = 20K
+        LENGTH = 6K
 }
 
-SECTIONS {
-    . = 0x10; /* interrupt vectors start from 16 byte*/
-    
-    .ecall_vector ALIGN (0x10) : 
-    {
-        *(.ecall_vector)
-    }
+SECTIONS
+ {
+/*
+ . = 0x10;
+ .timer_vector :
+ {
+    *(.timer_vector)
+ }
+*/
+ /* text: test code section */
+  . = 0x0;
+ .text :
+ {
+     *tn_arch_risc_rv32.o(.text);
+    *(.text)
+ } > ram
 
-    .ebreak_vector ALIGN (0x10) : 
-    {
-        *(.ebreak_vector)
-    }
+ /* data: Initialized data segment */
+ .data :
+ {
+    *(.data)
+ } > ram
 
-    .timer_vector ALIGN (0x10) : 
-    {
-        *(.timer_vector)
-    }
+ /* Uintialized data */
+  .bss :
+  {
+    *(.bss)
+  } > ram
+ /* End of uninitalized data segement */
+ _end = .;
+ }
 
-    .extern_int_vector ALIGN (0x10) : 
-    {
-        *(.extern_int_vector)
-    }
-    . = 0x0050;          /* the code should be loaded at interrupt handler */
-
-    .text ALIGN (0x1000) :   /* align at 4 KB */
-    {
-        *(.text)             /* all text sections from all files */
-    }
-
-    .rodata ALIGN (0x1000) : /* align at 4 KB */
-    {
-        *(.rodata*)          /* all read-only data sections from all files */
-    }
-
-    .data ALIGN (0x1000) :   /* align at 4 KB */
-    {
-        *(.data)             /* all data sections from all files */
-    }
-
-    .bss ALIGN (0x1000) :    /* align at 4 KB */
-    {
-        *(COMMON)            /* all COMMON sections from all files */
-        *(.bss*)              /* all bss sections from all files */
-    }
-}
+PROVIDE(_endram = ORIGIN(stack));
+PROVIDE(_fstack = ORIGIN(stack) + LENGTH(stack) - 4);

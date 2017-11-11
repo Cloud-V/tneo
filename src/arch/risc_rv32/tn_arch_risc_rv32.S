@@ -2,6 +2,8 @@
 
 .section .text
 
+
+
 /* External references */
 
 .extern  _tn_curr_run_task
@@ -23,6 +25,80 @@
 .global  tn_arch_sched_dis_save
 .global tn_arch_sched_restore
 .global tn_arch_enable_timer
+
+/************************************************************
+*   interrupt handlers
+*************************************************************
+
+/**
+called whenever the system timer reaches 0 and therefore
+an interrupt fires to take back control from user thread.
+
+make sure not to write more than 4 instructions within this function
+since the interrupt vector can only fit 4 instructions. any additional instruction will  be 
+overridden by the code of the next interrupt handler
+**/
+.global _start
+.org 0
+_start:
+	j	boot_strap
+
+
+
+/**.section .ecall_vector **/
+/** ecall interrupt handler, not used for now
+**/
+.org 0x10
+_tn_arch_ecall_handler:
+    nop
+    nop
+    nop
+    nop
+
+/** .section .ebreak_vector: **/
+_tn_arch_ebreak_handler:
+    nop
+    nop
+    nop
+    nop
+
+/** .section .timer_vector **/
+_tn_arch_timer_handler:
+    j tn_tick_int_processing 
+    nop
+    nop
+    nop
+    nop
+    
+/** .section .extern_int_vector: **/
+_tn_arch_extern_int_handler:
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+
+boot_strap:
+	li      x4, 0x7 #{eie, tie, gie}
+    csrrw   x0,0x4, x4
+	lui     sp, %hi(_fstack)
+	addi    sp, sp, %lo(_fstack)
+	jal     main
+	li	    a7, 10
+	ecall
+
+
 
 /* constants */
 .equ context_size, 128
@@ -103,7 +179,7 @@ perform_context_switch:
 
     #store all general purpose registers to the stack
     sw x1, 0(sp)
-    sw x2, 4(sp)
+#    sw x2, 4(sp)
     sw x3, 8(sp)
     sw x4, 12(sp)
     sw x5, 16(sp)
@@ -134,7 +210,8 @@ perform_context_switch:
     sw x30, 116(sp)
     sw x31, 120(sp)
     # extract tasks pc from epc 
-    csrrc x31, 65, zero # read epc without changing epc
+    csrrw x31, 65, zero # read epc without changing epc
+    csrrw zero,65, x31 # restore epc that was overriden 
     sw x31, 124(sp) # store pc to resume exec from
 
     # start switching tasks
@@ -163,7 +240,7 @@ tn_restore_context:
     CSRRW zero, 65, x31 # restore epc and ignore value read
 
     lw x1, 0(sp)
-    lw x2, 4(sp)
+#    lw x2, 4(sp)
     lw x3, 8(sp)
     lw x4, 12(sp)
     lw x5, 16(sp)
@@ -259,42 +336,3 @@ tn_arch_sched_dis_save:
 tn_arch_sched_restore:
     csrrw zero, 0x4, a0 # restore all interrupts to previous state
     ret                 
-
-/************************************************************
-*   interrupt handlers
-*************************************************************
-
-/**
-called whenever the system timer reaches 0 and therefore
-an interrupt fires to take back control from user thread.
-
-make sure not to write more than 4 instructions within this function
-since the interrupt vector can only fit 4 instructions. any additional instruction will  be 
-overridden by the code of the next interrupt handler
-**/
-.section .timer_vector
-_tn_arch_timer_handler:
-    j tn_tick_int_processing 
-
-/** ecall interrupt handler, unsed for now
-**/
-.section .ecall_vector
-_tn_arch_ecall_handler:
-    nop
-    nop
-    nop
-    nop
-
-.section .ebreak_vector:
-_tn_arch_ebreak_handler:
-    nop
-    nop
-    nop
-    nop
-    
-.section .extern_int_vector:
-_tn_arch_extern_int_handler:
-    nop
-    nop
-    nop
-    nop
