@@ -65,7 +65,7 @@ void tn_arch_enable_timer();
         need to point to boundary location rather than the last element 
         in the stack
     **/ 
-    cur_stack_pt -= 33;
+    cur_stack_pt -= 33; // 132 bytes we need for context saving
     
     /**setting the value of ra register to address of task exit
      * so we can exit the task after completing it's execution
@@ -74,9 +74,9 @@ void tn_arch_enable_timer();
     //-- UEPC: address that PC is set to when context switch is done
     //   and `eret` is executed.
     //   We should set it to task body function address
-    *(cur_stack_pt + 30) = (TN_UWord)task_func;
+    *(cur_stack_pt) = (TN_UWord)task_func;
     //-- a0 - task's function argument 
-    *(cur_stack_pt + 8) = (TN_UWord)param; 
+    *(cur_stack_pt + 9) = (TN_UWord)param; 
     // put value provided by linker for global pointer
     // *(cur_stack_pt + 1) = (TN_UWord)&_gp; 
     

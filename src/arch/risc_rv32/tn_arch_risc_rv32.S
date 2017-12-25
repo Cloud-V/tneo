@@ -101,7 +101,7 @@ boot_strap:
 
 
 /* constants */
-.equ context_size, 128
+.equ context_size, 132
 
 /* function implementations*/
 
