@@ -2,10 +2,14 @@
 
 int __clzsi2 (unsigned int a)
 {
-    if(!a) return -1;
-    for(int i = 0; i < 32; ++i){
+	if(a == 0) 
+		return -1;
+    
+	int i = 0;
+	while(1){
         if(a & 1) return i;
-        i = i>>1; 
+        a = a>>1;
+		++i;
     }
 }
 
