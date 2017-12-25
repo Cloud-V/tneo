@@ -74,7 +74,7 @@ void tn_arch_enable_timer();
     //-- UEPC: address that PC is set to when context switch is done
     //   and `eret` is executed.
     //   We should set it to task body function address
-    *(cur_stack_pt) = (TN_UWord)task_func;
+    *(cur_stack_pt + 31) = (TN_UWord)task_func;
     //-- a0 - task's function argument 
     *(cur_stack_pt + 9) = (TN_UWord)param; 
     // put value provided by linker for global pointer
