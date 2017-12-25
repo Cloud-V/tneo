@@ -120,7 +120,6 @@ boot_strap:
 _tn_arch_context_switch_now_nosave:
     la x5, _tn_curr_run_task            /* x5 = &_tn_curr_run_task */     
     lw x6, _tn_next_task_to_run         /* x6 = _tn_next_task_to_run */
-    lw sp, 0(x6)                        /* set sp to next task's stack */
 
 #if _TN_ON_CONTEXT_SWITCH_HANDLER
     lw a0, 0(x5)                 /* a0 = _tn_curr_run_task */
@@ -131,11 +130,12 @@ _tn_arch_context_switch_now_nosave:
     * - a0: _tn_curr_run_task
     * - a1: _tn_next_task_to_run
     */
-    jal 
+    jal _tn_sys_on_context_switch
 #endif
     
+    lw sp, 0(x6)                        /* set sp to next task's stack */
     sw x6, 0(x5)    /* _tn_curr_run_task = _tn_next_task_to_run */
-    jal x0, tn_arch_sr_restore
+    jal x0, tn_restore_context
 
 
 # disables all interrupts unconditionally
@@ -236,7 +236,7 @@ perform_context_switch:
     # TODO: check if there are bits to disable after handling interrupt
 
 tn_restore_context:
-    lw x31, 124(sp) # load epc from proocess stack
+    lw x31, 124(sp) # load epc from process stack
     CSRRW zero, 65, x31 # restore epc and ignore value read
 
     lw x1, 0(sp)
