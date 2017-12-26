@@ -106,6 +106,7 @@ void printString();
 void readInteger();
 void terminateExecution();
 void EBREAK();
+void updateTimer();
 
 
 int main(int argc, char* argv[]) {
@@ -132,13 +133,7 @@ int main(int argc, char* argv[]) {
             instDecExec(instWord);
             regs[0] = 0;
 
-            if(timer > 0 && (uie & 0x1) == 0x1){
-                timer -= 1;
-            }
-            if(timer == 1){
-                timerInterrupt();
-		timer = 0;
-            }
+            updateTimer();
          }
 
          // check if terminated correcctly
@@ -157,6 +152,17 @@ int main(int argc, char* argv[]) {
      } else {
          emitError("Cannot access input file");
      }
+}
+
+void updateTimer()
+{
+    if(timer > 1){
+        timer -= 1;
+    }else if(timer > 0 && (uie & 0x1) == 0x1){
+        timerInterrupt();
+        timer = 0;
+        puts("timer went off");
+    }
 }
 
 // dump the registers
@@ -882,10 +888,10 @@ void SYS_Inst(int rd, int rs1, int imm, int func)
             regs[rd] = uie;
             uie = tmp;
         }else if(imm  == 0xc01){ // csrrw rd, timer, rs1
-            puts("\n updating TIMER");
             int tmp = regs[rs1];
             regs[rd] = timer;
             timer = tmp;
+            printf("\n updating TIMER\t%d\n", tmp);
         }else if(imm  == 0x41){ // csrrw rd, epc, rs1
 			int tmp = regs[rs1];
             regs[rd] = epc;
