@@ -78,7 +78,6 @@ void tn_arch_enable_timer();
     //-- a0 - task's function argument 
     *(cur_stack_pt + 9) = (TN_UWord)param; 
     // put value provided by linker for global pointer
-    // *(cur_stack_pt + 1) = (TN_UWord)&_gp; 
     
 
     _TN_UNUSED(stack_low_addr);

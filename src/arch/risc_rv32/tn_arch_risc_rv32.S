@@ -229,11 +229,10 @@ perform_context_switch:
     * - a0: _tn_curr_run_task
     * - a1: _tn_next_task_to_run
     */
-   jal     _tn_sys_on_context_switch
+    jal     _tn_sys_on_context_switch
 #endif
     
     sw      x2, 0(x1)            /* _tn_curr_run_task = _tn_next_task_to_run */
-    # TODO: check if there are bits to disable after handling interrupt
 
 tn_restore_context:
     lw x31, 124(sp) # load epc from process stack
