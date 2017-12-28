@@ -1,13 +1,15 @@
 #include <iostream>
 #include <iomanip>
+#include <string>
 #include <fstream>
+#include <set>
 #include "stdlib.h"
 
 using namespace std;
 
 #define MMAP_PRINT 0x80000000
 
-
+std::set<int> breakpoints;
 const int regCount = 32;
 int regs[regCount] = {0};
 int uie = 0;
@@ -107,7 +109,8 @@ void readInteger();
 void terminateExecution();
 void EBREAK();
 void updateTimer();
-
+void loadBreakpoints(char *file);
+void checkForBreakpoints();
 
 int main(int argc, char* argv[]) {
      unsigned int instWord = 0;
@@ -115,6 +118,8 @@ int main(int argc, char* argv[]) {
 
      if(argc < 1){
          emitError("Use: rv32i_sim <machine_code_file_name>");
+     }else if(argc == 3){
+     	loadBreakpoints(argv[2]);
      }
 
      inFile.open(argv[1], ios::in | ios::binary | ios::ate);
@@ -128,6 +133,8 @@ int main(int argc, char* argv[]) {
          }
 
          while(!terminated) {
+            checkForBreakpoints();
+
             instWord = 	readInstruction();  // read next instruction
             pc += 4;    // increment pc by 4
             instDecExec(instWord);
@@ -932,4 +939,39 @@ void EBREAK()
     epc = pc;
     pc = 32;
     uie = uie & 0xfffe; // turn off global interrupts
+}
+
+void loadBreakpoints(char *file)
+{
+	std::ifstream fs(file);
+	if(!fs.is_open()){
+		puts("failed to load break points");
+		exit(-1);
+	}
+	
+	int address;
+	
+    do{
+		fs>>address;
+		if(fs.eof()){
+			fs.close();
+		}else{
+			breakpoints.insert(address);
+		}
+	}while(fs.is_open());
+}
+
+void checkForBreakpoints()
+{
+    if(breakpoints.count(pc)){
+        printf("---BREAKPOINT-----%d----------------------------------\n");
+            for(int i = 0; i < 32; ++i)
+                cout<<"REG "<<i<<"\t"<<regs[i]<<endl;
+            
+            cout<<"REG UIE"<<"\t"<<uie<<endl;
+            cout<<"REG EPC"<<"\t"<<epc<<endl;
+            cout<<"REG TIMER"<<"\t"<<timer<<endl;
+
+        printf("---END---BREAKPOINT-----------------------------------\n");
+    }
 }
