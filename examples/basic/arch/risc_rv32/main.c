@@ -49,7 +49,7 @@ void task_a_body(void *par)
 {
    //-- this is a first created application task, so it needs to perform
    //   all the application initialization.
-   appl_init();
+//   appl_init();
 
    //-- and then, let's get to the primary job of the task
    //   (job for which task was created at all)
