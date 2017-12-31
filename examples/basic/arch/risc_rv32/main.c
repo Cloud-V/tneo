@@ -60,13 +60,16 @@ void task_a_body(void *par)
 
     int i, j;
     for (i = 0; i < size-1; i++){
-        for (j = 0; j < size-i-1; j++) 
+        for (j = 0; j < size-i-1; j++){
             if (TEST_ARR[j] > TEST_ARR[j+1]){
                 int temp = TEST_ARR[j];
                 TEST_ARR[j] = TEST_ARR[j+1];
                 TEST_ARR[j+1] = temp;
             }
+        } 
     }
+
+    while(1);
 }
 
 // void task_b_body(void *par)

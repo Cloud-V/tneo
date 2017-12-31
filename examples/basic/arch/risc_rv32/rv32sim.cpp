@@ -921,11 +921,11 @@ void SYS_Inst(int rd, int rs1, int imm, int func)
 
 void timerInterrupt()
 {
-    if(uie == 0x3){ // global and timer interrupt enabled
-        uie = uie & 0xfffe; // turn off global interrupts
-        epc = pc;
-        pc = 48;
-    }
+   // if(uie == 0x3){ // global and timer interrupt enabled
+    uie = uie & 0xfffe; // turn off global interrupts
+    epc = pc;
+    pc = 48;
+    //}
 }
 
 void URET()
@@ -950,11 +950,13 @@ void loadBreakpoints(char *file)
 		exit(-1);
 	}
 	
-	int address;
-	
     do{
+        
+	    int address;
 		fs>>address;
-		if(fs.eof()){
+        printf("INPUT: %d\n",address);
+		
+        if(fs.eof()){
 			fs.close();
 		}else{
 			breakpoints.insert(address);
@@ -966,17 +968,27 @@ void loadBreakpoints(char *file)
 void checkForBreakpoints()
 {
     if(breakpoints.count(pc)){
-        printf("---BREAKPOINT-----%08x----------------------------------\n", pc);
-            for(int i = 0; i < 32; ++i)
-                printf("REG %d \t %08x\n",i, regs[i]);
+        // printf("---BREAKPOINT-----%08x----------------------------------\n", pc);
+        //     for(int i = 0; i < 32; ++i)
+        //         printf("REG %d \t %08x\n",i, regs[i]);
             
-            printf("REG UIE \t %08x\n", uie);
-            printf("REG EPC \t %08x\n", epc);
-            printf("REG TIMER \t %08x\n", timer);
-            // cout<<"REG UIE"<<"\t"<<uie<<endl;
-            // cout<<"REG EPC"<<"\t"<<epc<<endl;
-            // cout<<"REG TIMER"<<"\t"<<timer<<endl;
+        //     printf("REG UIE \t %08x\n", uie);
+        //     printf("REG EPC \t %08x\n", epc);
+        //     printf("REG TIMER \t %08x\n", timer);
+        //     // cout<<"REG UIE"<<"\t"<<uie<<endl;
+        //     // cout<<"REG EPC"<<"\t"<<epc<<endl;
+        //     // cout<<"REG TIMER"<<"\t"<<timer<<endl;
 
-        printf("---END---BREAKPOINT-----------------------------------\n");
+        // printf("---END---BREAKPOINT-----------------------------------\n");
+
+        void *ptr = memory + 13768;
+        int *num = (int *) ptr;
+
+        puts("final test array");
+        for(int i = 0; i < 100; ++i){
+            printf("%d\n", num[i]);
+        }
+
+        exit(0);
     }
 }
