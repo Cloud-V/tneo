@@ -159,8 +159,10 @@ tn_arch_int_en:
 /** turns on timer so that kernel can pre-empt tasks every time quantum
 */
 tn_arch_enable_timer:
+   # sw t0, -4(sp)
     addi t0, x0, 0x7ff
     csrrw x0, 0xc01, t0
+    # lw t0, -4(sp)
     ret
 
 /* 
@@ -364,6 +366,7 @@ tn_arch_sched_restore:
 */
 tn_timer_timer_handler:
     tn_save_context
-    jal x1, tn_tick_int_processing
+    jal tn_tick_int_processing
+    jal tn_arch_enable_timer
     load_next_task
     j   tn_restore_context

@@ -108,7 +108,7 @@ void printString();
 void readInteger();
 void terminateExecution();
 void EBREAK();
-void updateTimer();
+void updateTimer(); 
 void loadBreakpoints(char *file);
 void checkForBreakpoints();
 
@@ -135,13 +135,12 @@ int main(int argc, char* argv[]) {
 
          while(!terminated) {
             checkForBreakpoints();
+            updateTimer();
 
             instWord = 	readInstruction();  // read next instruction
             pc += 4;    // increment pc by 4
             instDecExec(instWord);
             regs[0] = 0;
-
-            updateTimer();
          }
 
          // check if terminated correcctly
@@ -981,11 +980,11 @@ void checkForBreakpoints()
 
         // printf("---END---BREAKPOINT-----------------------------------\n");
 
-        void *ptr = memory + 13768;
+        void *ptr = memory + 13776;
         int *num = (int *) ptr;
 
         puts("final test array");
-        for(int i = 0; i < 100; ++i){
+        for(int i = 0; i < 150; ++i){
             printf("%d\n", num[i]);
         }
 

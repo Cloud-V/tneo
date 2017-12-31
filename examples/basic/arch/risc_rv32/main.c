@@ -37,8 +37,8 @@ TN_STACK_ARR_DEF(task_a_stack, TASK_A_STK_SIZE);
 
 //-- and then, let's get to the primary job of the task
 //   (job for which task was created at all)
-const int size = 100;
-int TEST_ARR[100];
+const int size = 150;
+int TEST_ARR[150];
 
 //-- task structures
 
