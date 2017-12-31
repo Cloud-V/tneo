@@ -9,7 +9,7 @@
 #define INTERRUPT_STACK_SIZE          (TN_MIN_STACK_SIZE + 64)
 
 //-- stack sizes of user tasks
-#define TASK_A_STK_SIZE    (TN_MIN_STACK_SIZE + 96)
+#define TASK_A_STK_SIZE    (TN_MIN_STACK_SIZE + 500)
 #define TASK_B_STK_SIZE    (TN_MIN_STACK_SIZE + 96)
 #define TASK_C_STK_SIZE    (TN_MIN_STACK_SIZE + 96)
 
@@ -32,16 +32,19 @@ TN_STACK_ARR_DEF(idle_task_stack, IDLE_TASK_STACK_SIZE);
 TN_STACK_ARR_DEF(interrupt_stack, INTERRUPT_STACK_SIZE);
 
 TN_STACK_ARR_DEF(task_a_stack, TASK_A_STK_SIZE);
-TN_STACK_ARR_DEF(task_b_stack, TASK_B_STK_SIZE);
-TN_STACK_ARR_DEF(task_c_stack, TASK_C_STK_SIZE);
+// TN_STACK_ARR_DEF(task_b_stack, TASK_B_STK_SIZE);
+// TN_STACK_ARR_DEF(task_c_stack, TASK_C_STK_SIZE);
 
-
+//-- and then, let's get to the primary job of the task
+//   (job for which task was created at all)
+const int size = 100;
+int TEST_ARR[100];
 
 //-- task structures
 
 struct TN_Task task_a = {};
-struct TN_Task task_b = {};
-struct TN_Task task_c = {};
+// struct TN_Task task_b = {};
+// struct TN_Task task_c = {};
 
 void appl_init(void);
 
@@ -51,58 +54,63 @@ void task_a_body(void *par)
    //   all the application initialization.
 //   appl_init();
 
-   //-- and then, let's get to the primary job of the task
-   //   (job for which task was created at all)
-   int hello = 0;
-   for(;;)
-   {
-      hello += 1;
-      tn_task_sleep(500);
-   }
-}
+    for(int i = 0; i < size;i++){
+        TEST_ARR[i] = size - i;
+    }
 
-void task_b_body(void *par)
-{
-    int hello2 = 0;
-    for(;;)
-    {
-        hello2 += 2;
-        tn_task_sleep(1000);
+    int i, j;
+    for (i = 0; i < size-1; i++){
+        for (j = 0; j < size-i-1; j++) 
+            if (TEST_ARR[j] > TEST_ARR[j+1]){
+                int temp = TEST_ARR[j];
+                TEST_ARR[j] = TEST_ARR[j+1];
+                TEST_ARR[j+1] = temp;
+            }
     }
 }
 
-void task_c_body(void *par)
-{
-    int hello3 = 0;
-    for(;;)
-    {
-        hello3 += 3;
-        tn_task_sleep(1500);
-    }
-}
+// void task_b_body(void *par)
+// {
+//     int hello2 = 0;
+//     for(;;)
+//     {
+//         hello2 += 2;
+//         tn_task_sleep(1000);
+//     }
+// }
 
-void appl_init(void)
-{
-    tn_task_create(
-        &task_b,
-        task_b_body,
-        TASK_B_PRIORITY,
-        task_b_stack,
-        TASK_B_STK_SIZE,
-        NULL,
-        (TN_TASK_CREATE_OPT_START)
-        );
+// void task_c_body(void *par)
+// {
+//     int hello3 = 0;
+//     for(;;)
+//     {
+//         hello3 += 3;
+//         tn_task_sleep(1500);
+//     }
+// }
 
-  tn_task_create(
-        &task_c,
-        task_c_body,
-        TASK_C_PRIORITY,
-        task_c_stack,
-        TASK_C_STK_SIZE,
-        NULL,
-        (TN_TASK_CREATE_OPT_START)
-        );
-}
+// void appl_init(void)
+// {
+//     tn_task_create(
+//         &task_b,
+//         task_b_body,
+//         TASK_B_PRIORITY,
+//         task_b_stack,
+//         TASK_B_STK_SIZE,
+//         NULL,
+//         (TN_TASK_CREATE_OPT_START)
+//         );
+
+//   tn_task_create(
+//         &task_c,
+//         task_c_body,
+//         TASK_C_PRIORITY,
+//         task_c_stack,
+//         TASK_C_STK_SIZE,
+//         NULL,
+//         (TN_TASK_CREATE_OPT_START)
+//         );
+// }
 
 //-- idle callback that is called periodically from idle task
 void idle_task_callback(void)

@@ -25,8 +25,8 @@ void *memset(void * ptr, int value, size_t num )
 }
 int memcmp ( const void * ptr1, const void * ptr2, size_t num )
 {
-	char *begin = (char *)ptr1;
-	char *end = ptr1 + num;
+	const char *begin = (char *)ptr1;
+	const char *end = ptr1 + num;
 	while(begin < end)
 	{
 		if(*begin < *end) return -1;

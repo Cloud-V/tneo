@@ -26,6 +26,10 @@
 .global tn_arch_sched_restore
 .global tn_arch_enable_timer
 
+.global tn_save_context
+.global load_next_task
+.global tn_restore_context
+
 /************************************************************
 *   interrupt handlers
 *************************************************************
@@ -49,29 +53,29 @@ _start:
 /** ecall interrupt handler, not used for now
 **/
 .org 0x10
-_tn_arch_ecall_handler:
+_tn_arch_ecall_vector:
     uret
     nop
     nop
     nop
 
 /** .section .ebreak_vector: **/
-_tn_arch_ebreak_handler:
+_tn_arch_ebreak_vector:
     uret
     nop
     nop
     nop
 
 /** .section .timer_vector **/
-_tn_arch_timer_handler:
-    j tn_tick_int_processing 
+_tn_arch_timer_vector:
+    j tn_timer_timer_handler 
     nop
     nop
     nop
     nop
     
 /** .section .extern_int_vector: **/
-_tn_arch_extern_int_handler:
+_tn_arch_extern_int_vector:
     nop
     nop
     nop
@@ -104,6 +108,7 @@ boot_strap:
 .equ context_size, 132
 
 /* function implementations*/
+
 
 
 /*
@@ -164,8 +169,7 @@ tn_arch_enable_timer:
  */
 _tn_arch_is_int_disabled:
     CSRRW a0,0x4, zero   #read interrupt status
-    CSRRW x0,0x4, a0     #restore
- interrupt status
+    CSRRW x0,0x4, a0     #restore interrupt status
     andi  a0,a0,0x1      #check if global interrupts are enabled
     xori  a0,a0,0x1      #invert least significant bit
     ret
@@ -177,7 +181,7 @@ _tn_arch_is_int_disabled:
 * its currently called directly when a context switch is pending,
 * will find a software workaround to allow pending if problems arise
 */
-perform_context_switch:
+.macro tn_save_context
     addi sp, sp, -context_size
 
     #store all general purpose registers to the stack
@@ -218,9 +222,14 @@ perform_context_switch:
     sw x31, 124(sp) # store pc to resume exec from
 
     # start switching tasks
+    lw a0, _tn_curr_run_task        # a0 = _tn_curr_run_task
+    sw sp, 0(a0)                    # store sp in preempted task's TCB
+
+.endm
+
+.macro load_next_task
     la t0, _tn_curr_run_task        # t0 = &_tn_curr_run_task
     lw a0, 0(t0)                    # a0 = _tn_curr_run_task
-    sw sp, 0(a0)                    # store sp in preempted task's TCB
 
     lw t1, _tn_next_task_to_run     # t1 = _tn_next_task_to_run
     add a1, t1, zero                # a1 = _tn_next_task_to_run
@@ -237,7 +246,12 @@ perform_context_switch:
 
     sw  t1, 0(t0)            /* _tn_curr_run_task = _tn_next_task_to_run */
 
+.endm
+
+/* expects everything to be in place, just to load from current sp the context
+*/
 tn_restore_context:
+    
     lw x31, 124(sp) # load epc from process stack
     CSRRW zero, 65, x31 # restore epc and ignore value read
 
@@ -277,6 +291,7 @@ tn_restore_context:
 
     uret
 
+
 /*
 * ------------------------------------------------------------------------
 * _tn_arch_context_switch_pend()
@@ -289,7 +304,12 @@ _tn_arch_context_switch_pend:
     # todo: verify actual behavior, might need to use specific interrupt code
     # rather than zero for system interrupt code
     
-    j perform_context_switch   # perform system interrupt for context switching
+    la t0, should_context_switch
+    addi t1, zero, 1
+    sw t1, 0(t0)
+
+    ret
+    # j perform_context_switch   # perform system interrupt for context switching
 
 /**
 * Should return 1 if <i>system ISR</i> is currently running, 0 otherwise.
@@ -338,3 +358,12 @@ tn_arch_sched_dis_save:
 tn_arch_sched_restore:
     csrrw zero, 0x4, a0 # restore all interrupts to previous state
     ret                 
+
+
+/* called by timer vector to handle timer interrupt
+*/
+tn_timer_timer_handler:
+    tn_save_context
+    jal x1, tn_tick_int_processing
+    load_next_task
+    j   tn_restore_context
