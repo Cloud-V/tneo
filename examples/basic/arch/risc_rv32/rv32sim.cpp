@@ -966,13 +966,16 @@ void loadBreakpoints(char *file)
 void checkForBreakpoints()
 {
     if(breakpoints.count(pc)){
-        printf("---BREAKPOINT-----%d----------------------------------\n", pc);
+        printf("---BREAKPOINT-----%08x----------------------------------\n", pc);
             for(int i = 0; i < 32; ++i)
-                cout<<"REG "<<i<<"\t"<<regs[i]<<endl;
+                printf("REG %d \t %08x\n",i, regs[i]);
             
-            cout<<"REG UIE"<<"\t"<<uie<<endl;
-            cout<<"REG EPC"<<"\t"<<epc<<endl;
-            cout<<"REG TIMER"<<"\t"<<timer<<endl;
+            printf("REG UIE \t %08x\n", uie);
+            printf("REG EPC \t %08x\n", epc);
+            printf("REG TIMER \t %08x\n", timer);
+            // cout<<"REG UIE"<<"\t"<<uie<<endl;
+            // cout<<"REG EPC"<<"\t"<<epc<<endl;
+            // cout<<"REG TIMER"<<"\t"<<timer<<endl;
 
         printf("---END---BREAKPOINT-----------------------------------\n");
     }

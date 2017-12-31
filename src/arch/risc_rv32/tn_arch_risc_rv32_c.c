@@ -66,7 +66,9 @@ void tn_arch_enable_timer();
         in the stack
     **/ 
     cur_stack_pt -= 33; // 132 bytes we need for context saving
-    
+    for(int i = 0; i < 33;i++){
+        cur_stack_pt[i] = (TN_UWord*) 0;
+    }
     /**setting the value of ra register to address of task exit
      * so we can exit the task after completing it's execution
     **/

@@ -121,18 +121,20 @@ _tn_arch_context_switch_now_nosave:
     la x5, _tn_curr_run_task            /* x5 = &_tn_curr_run_task */     
     lw x6, _tn_next_task_to_run         /* x6 = _tn_next_task_to_run */
 
-#if _TN_ON_CONTEXT_SWITCH_HANDLER
-    lw a0, 0(x5)                 /* a0 = _tn_curr_run_task */
-    add a1, x6, zero             /* a1 =  _tn_next_task_to_run */
 
-   /* 
-    * arguments are set:
-    * - a0: _tn_curr_run_task
-    * - a1: _tn_next_task_to_run
-    */
-    jal _tn_sys_on_context_switch
-#endif
-    
+// #if _TN_ON_CONTEXT_SWITCH_HANDLER
+//     lw a0, 0(x5)                 /* a0 = _tn_curr_run_task */
+//     add a1, x6, zero             /* a1 =  _tn_next_task_to_run */
+
+//    /* 
+//     * arguments are set:
+//     * - a0: _tn_curr_run_task
+//     * - a1: _tn_next_task_to_run
+//     */
+//     jal _tn_sys_on_context_switch
+// #endif
+
+
     lw sp, 0(x6)                        /* set sp to next task's stack */
     sw x6, 0(x5)    /* _tn_curr_run_task = _tn_next_task_to_run */
     jal x0, tn_restore_context
@@ -162,7 +164,8 @@ tn_arch_enable_timer:
  */
 _tn_arch_is_int_disabled:
     CSRRW a0,0x4, zero   #read interrupt status
-    CSRRW x0,0x4, a0     #restore interrupt status
+    CSRRW x0,0x4, a0     #restore
+ interrupt status
     andi  a0,a0,0x1      #check if global interrupts are enabled
     xori  a0,a0,0x1      #invert least significant bit
     ret
@@ -215,24 +218,24 @@ perform_context_switch:
     sw x31, 124(sp) # store pc to resume exec from
 
     # start switching tasks
-    la x1, _tn_curr_run_task        # x1 = &_tn_curr_run_task
-    lw a0, 0(x1)                    # a0 = _tn_curr_run_task
+    la t0, _tn_curr_run_task        # t0 = &_tn_curr_run_task
+    lw a0, 0(t0)                    # a0 = _tn_curr_run_task
     sw sp, 0(a0)                    # store sp in preempted task's TCB
 
-    lw x2, _tn_next_task_to_run     # x2 = _tn_next_task_to_run
-    add a1, x2, zero                # a1 = _tn_next_task_to_run
-    lw sp, 0(x2)                    # load sp of task to run
+    lw t1, _tn_next_task_to_run     # t1 = _tn_next_task_to_run
+    add a1, t1, zero                # a1 = _tn_next_task_to_run
+    lw sp, 0(t1)                    # load sp of task to run
 
-#if _TN_ON_CONTEXT_SWITCH_HANDLER
-    /* 
-    * arguments are set:
-    * - a0: _tn_curr_run_task
-    * - a1: _tn_next_task_to_run
-    */
-    jal     _tn_sys_on_context_switch
-#endif
-    
-    sw      x2, 0(x1)            /* _tn_curr_run_task = _tn_next_task_to_run */
+//  #if _TN_ON_CONTEXT_SWITCH_HANDLER
+//      /* 
+//      * arguments are set:
+//      * - a0: _tn_curr_run_task
+//      * - a1: _tn_next_task_to_run
+//      */
+//      jal     _tn_sys_on_context_switch
+//  #endif
+
+    sw  t1, 0(t0)            /* _tn_curr_run_task = _tn_next_task_to_run */
 
 tn_restore_context:
     lw x31, 124(sp) # load epc from process stack
