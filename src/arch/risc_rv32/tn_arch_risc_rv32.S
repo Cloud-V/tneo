@@ -6,6 +6,8 @@
 
 /* External references */
 
+.extern  tn_rv32_user_sp
+.extern  tn_rv32_int_sp
 .extern  _tn_curr_run_task
 .extern  _tn_next_task_to_run
 .extern  _tn_sys_on_context_switch
@@ -366,7 +368,19 @@ tn_arch_sched_restore:
 */
 tn_timer_timer_handler:
     tn_save_context
+    
+    # switch to interrupt stack
+    la t0, tn_rv32_user_sp      
+    sw sp, 0(t0)            # update tn_rv32_user_sp such that we know the stack pointer to return to after 
+                            # we complete the execution of the kernel
+    lw sp, tn_rv32_int_sp   # switch to interrupt stack
+
+    # execute kernel
     jal tn_tick_int_processing
     jal tn_arch_enable_timer
+
+    lw sp, tn_rv32_user_sp  # switch back to task sp to complete context switch
+
+    # execute next task
     load_next_task
     j   tn_restore_context
