@@ -190,7 +190,6 @@ _tn_arch_is_int_disabled:
 
     #store all general purpose registers to the stack
     sw x1, 0(sp)
-#    sw x2, 4(sp)
     sw x3, 8(sp)
     sw x4, 12(sp)
     sw x5, 16(sp)
@@ -260,7 +259,6 @@ tn_restore_context:
     CSRRW zero, 65, x31 # restore epc and ignore value read
 
     lw x1, 0(sp)
-#    lw x2, 4(sp)
     lw x3, 8(sp)
     lw x4, 12(sp)
     lw x5, 16(sp)
@@ -308,9 +306,9 @@ _tn_arch_context_switch_pend:
     # todo: verify actual behavior, might need to use specific interrupt code
     # rather than zero for system interrupt code
     
-    la t0, should_context_switch
-    addi t1, zero, 1
-    sw t1, 0(t0)
+    # la t0, should_context_switch
+    # addi t1, zero, 1
+    # sw t1, 0(t0)
 
     ret
     # j perform_context_switch   # perform system interrupt for context switching

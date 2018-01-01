@@ -15,7 +15,7 @@
 #     pic24_dspic_eds     
 #
 #  TN_COMPILER: depends on TN_ARCH.
-#     For cortex-m series, the following values are valid:
+#     For cortex-m series, the following values are valid:fno-delete-null-pointer-checks
 #
 #        arm-none-eabi-gcc
 #        clang

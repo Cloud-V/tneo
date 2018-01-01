@@ -70,7 +70,7 @@ extern "C"  {     /*}*/
  * Typically, set to assembler instruction that causes debugger to halt.
  */
 #define  _TN_FATAL_ERRORF(error_msg, ...)         \
-   {__asm__ volatile(" ebreak"); __asm__ volatile ("add zero, zero, zero");}
+   {__asm__ volatile("ebreak"); __asm__ volatile ("add zero, zero, zero");}
 
 
 
@@ -264,6 +264,103 @@ typedef  unsigned int               TN_UIntPtr;
  * whether they are in a system ISR or not
  */
 // int interrupt_nest_count = 0;
+
+/*
+ * pointers to user task stack pointer and 
+ * interrupt stack pointer
+ * 
+ */
+void *tn_rv32_user_sp;
+void *tn_rv32_int_sp;
+
+
+#define tn_rv32_soft_isr(vec)                                                   \
+__attribute__((__noinline__)) void _func##vec(void);                           \
+void __attribute__((naked))                                              \
+     _isr##vec(void)                                                           \
+{                                                                              \
+    asm volatile("addi sp, sp, -132");                                         \
+    asm volatile("sw x1, 0(sp)");                                              \
+    asm volatile("sw x3, 8(sp)");                                              \
+    asm volatile("sw x4, 12(sp)");                                             \
+    asm volatile("sw x5, 16(sp)");                                             \
+    asm volatile("sw x6, 20(sp)");                                             \
+    asm volatile("sw x7, 24(sp)");                                             \
+    asm volatile("sw x8, 28(sp)");                                             \
+    asm volatile("sw x9, 32(sp)");                                             \
+    asm volatile("sw x10, 36(sp)");                                            \
+    asm volatile("sw x11, 40(sp)");                                            \
+    asm volatile("sw x12, 44(sp)");                                            \
+    asm volatile("sw x13, 48(sp)");                                            \
+    asm volatile("sw x14, 52(sp)");                                            \
+    asm volatile("sw x15, 56(sp)");                                            \
+    asm volatile("sw x16, 60(sp)");                                            \
+    asm volatile("sw x17, 64(sp)");                                            \
+    asm volatile("sw x18, 68(sp)");                                            \
+    asm volatile("sw x19, 72(sp)");                                            \
+    asm volatile("sw x20, 76(sp)");                                            \
+    asm volatile("sw x21, 80(sp)");                                            \
+    asm volatile("sw x22, 84(sp)");                                            \
+    asm volatile("sw x23, 88(sp)");                                            \
+    asm volatile("sw x24, 92(sp)");                                            \
+    asm volatile("sw x25, 96(sp)");                                            \
+    asm volatile("sw x26, 100(sp)");                                           \
+    asm volatile("sw x27, 104(sp)");                                           \
+    asm volatile("sw x28, 108(sp)");                                           \
+    asm volatile("sw x29, 112(sp)");                                           \
+    asm volatile("sw x30, 116(sp)");                                           \
+    asm volatile("sw x31, 120(sp)");                                           \
+                                                                               \
+    asm volatile("la t0, tn_rv32_user_sp");                                    \
+    asm volatile("sw sp, 0(t0)");                                              \
+    asm volatile("lw sp, tn_rv32_int_sp");                                     \
+                                                                               \
+    /* call user provided usr  */                                              \
+    /* NOTE: jumping using the immediate directly is possible because  */      \
+    /* the memory range in soc is small enough to be expressed using   */      \
+    /* the immediate given to jal. this will need to be changed if */          \
+    /* if the ram size was to be increased */                                  \
+     asm volatile("jal x1, _func"#vec);                                        \
+                                                                               \
+    /* return to user task stack   */                                          \
+    asm volatile("lw sp, tn_rv32_user_sp");                                    \
+                                                                               \
+    /* restore context */                                                      \
+    asm volatile("lw x1, 0(sp)");                                              \
+    asm volatile("lw x3, 8(sp)");                                              \
+    asm volatile("lw x4, 12(sp)");                                             \
+    asm volatile("lw x5, 16(sp)");                                             \
+    asm volatile("lw x6, 20(sp)");                                             \
+    asm volatile("lw x7, 24(sp)");                                             \
+    asm volatile("lw x8, 28(sp)");                                             \
+    asm volatile("lw x9, 32(sp)");                                             \
+    asm volatile("lw x10, 36(sp)");                                            \
+    asm volatile("lw x11, 40(sp)");                                            \
+    asm volatile("lw x12, 44(sp)");                                            \
+    asm volatile("lw x13, 48(sp)");                                            \
+    asm volatile("lw x14, 52(sp)");                                            \
+    asm volatile("lw x15, 56(sp)");                                            \
+    asm volatile("lw x16, 60(sp)");                                            \
+    asm volatile("lw x17, 64(sp)");                                            \
+    asm volatile("lw x18, 68(sp)");                                            \
+    asm volatile("lw x19, 72(sp)");                                            \
+    asm volatile("lw x20, 76(sp)");                                            \
+    asm volatile("lw x21, 80(sp)");                                            \
+    asm volatile("lw x22, 84(sp)");                                            \
+    asm volatile("lw x23, 88(sp)");                                            \
+    asm volatile("lw x24, 92(sp)");                                            \
+    asm volatile("lw x25, 96(sp)");                                            \
+    asm volatile("lw x26, 100(sp)");                                           \
+    asm volatile("lw x27, 104(sp)");                                           \
+    asm volatile("lw x28, 108(sp)");                                           \
+    asm volatile("lw x29, 112(sp)");                                           \
+    asm volatile("lw x30, 116(sp)");                                           \
+    asm volatile("lw x31, 120(sp)");                                           \
+                                                                               \
+    asm volatile("addi sp, sp, 132");                                 \
+    asm volatile("uret");                                                      \
+}__attribute((__noinline__)) void _func##vec(void)
+
 
 
 #ifdef __cplusplus

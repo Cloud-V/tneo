@@ -16,19 +16,6 @@
  *    PROTECTED DATA
  ******************************************************************************/
 
-/*
- * For comments on these variables, see the file tn_arch_risc_rv32.h
- */
-void *tn_rv32_user_sp;
-void *tn_rv32_int_sp;
-
-/** used as replacement for software interrupts
- * rather than performing a low priority software interrupt
- * to perform context switch, we use this variable instead.
- * the timer interrupt handler must check it with every interrupt
- * and set it to zero before performing a context switch.
- */
-char should_context_switch = 0;
 
 // tn_arch 
 void tn_arch_enable_timer();

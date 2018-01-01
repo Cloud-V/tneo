@@ -121,6 +121,12 @@ void idle_task_callback(void)
 
 }
 
+tn_rv32_soft_isr(hello)
+{
+    
+}
+
+
 //-- create first application task(s)
 void init_task_create(void)
 {

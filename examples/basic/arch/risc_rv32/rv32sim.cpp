@@ -3,6 +3,7 @@
 #include <string>
 #include <fstream>
 #include <set>
+#include <map>
 #include "stdlib.h"
 
 using namespace std;
@@ -10,6 +11,7 @@ using namespace std;
 #define MMAP_PRINT 0x80000000
 
 std::set<int> breakpoints;
+map<int, int> externalInterrupts; // set containing the pc address value needed to trigger an external interrupt and interrupt number
 const int regCount = 32;
 int regs[regCount] = {0};
 int uie = 0;
@@ -110,7 +112,9 @@ void terminateExecution();
 void EBREAK();
 void updateTimer(); 
 void loadBreakpoints(char *file);
+void loadExternalInterrupts(char *file);
 void checkForBreakpoints();
+void checkForExternalInterrupts();
 
 int main(int argc, char* argv[]) {
      unsigned int instWord = 0;
@@ -121,6 +125,10 @@ int main(int argc, char* argv[]) {
      }else if(argc == 3){
         puts("loading breakpoints");
      	loadBreakpoints(argv[2]);
+     }else if(argc == 4){
+         puts("loading breakpoints");
+     	loadBreakpoints(argv[2]);
+        loadExternalInterrupts(argv[3]);
      }
 
      inFile.open(argv[1], ios::in | ios::binary | ios::ate);
@@ -134,6 +142,7 @@ int main(int argc, char* argv[]) {
          }
 
          while(!terminated) {
+            checkForExternalInterrupts();
             checkForBreakpoints();
             updateTimer();
 
@@ -964,6 +973,29 @@ void loadBreakpoints(char *file)
 	}while(fs.is_open());
 }
 
+void loadExternalInterrupts(char *file)
+{
+    std::ifstream fs(file);
+	if(!fs.is_open()){
+		puts("failed to load break points");
+		exit(-1);
+	}
+	
+    do{
+        
+	    int address, number;
+		fs>>address>>number;
+        printf("INPUT: %d\n",address);
+		
+        if(fs.eof()){
+			fs.close();
+		}else{
+			externalInterrupts[address] = number;
+            printf("breakpoint at  %d\n", address);
+		}
+	}while(fs.is_open());
+}
+
 void checkForBreakpoints()
 {
     if(breakpoints.count(pc)){
@@ -980,7 +1012,7 @@ void checkForBreakpoints()
 
         // printf("---END---BREAKPOINT-----------------------------------\n");
 
-        void *ptr = memory + 13776;
+        void *ptr = memory + 13800;
         int *num = (int *) ptr;
 
         puts("final test array");
@@ -989,5 +1021,14 @@ void checkForBreakpoints()
         }
 
         exit(0);
+    }
+}
+
+void checkForExternalInterrupts()
+{
+    if(externalInterrupts.count(pc) && (uie & 1) == 1){
+        uie = uie & 0xfffe; // turn off global interrupts
+        epc = pc;
+        pc = 0x44;
     }
 }
