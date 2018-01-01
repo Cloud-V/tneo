@@ -22,6 +22,14 @@
 void *tn_rv32_user_sp;
 void *tn_rv32_int_sp;
 
+/** used as replacement for software interrupts
+ * rather than performing a low priority software interrupt
+ * to perform context switch, we use this variable instead.
+ * the timer interrupt handler must check it with every interrupt
+ * and set it to zero before performing a context switch.
+ */
+char should_context_switch = 0;
+
 // tn_arch 
 void tn_arch_enable_timer();
 
@@ -66,7 +74,9 @@ void tn_arch_enable_timer();
         in the stack
     **/ 
     cur_stack_pt -= 33; // 132 bytes we need for context saving
-    
+    for(int i = 0; i < 33;i++){
+        cur_stack_pt[i] = 0;
+    }
     /**setting the value of ra register to address of task exit
      * so we can exit the task after completing it's execution
     **/
@@ -78,7 +88,6 @@ void tn_arch_enable_timer();
     //-- a0 - task's function argument 
     *(cur_stack_pt + 9) = (TN_UWord)param; 
     // put value provided by linker for global pointer
-    // *(cur_stack_pt + 1) = (TN_UWord)&_gp; 
     
 
     _TN_UNUSED(stack_low_addr);

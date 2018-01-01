@@ -1,13 +1,15 @@
 #include <iostream>
 #include <iomanip>
+#include <string>
 #include <fstream>
+#include <set>
 #include "stdlib.h"
 
 using namespace std;
 
 #define MMAP_PRINT 0x80000000
 
-
+std::set<int> breakpoints;
 const int regCount = 32;
 int regs[regCount] = {0};
 int uie = 0;
@@ -106,8 +108,9 @@ void printString();
 void readInteger();
 void terminateExecution();
 void EBREAK();
-void updateTimer();
-
+void updateTimer(); 
+void loadBreakpoints(char *file);
+void checkForBreakpoints();
 
 int main(int argc, char* argv[]) {
      unsigned int instWord = 0;
@@ -115,6 +118,9 @@ int main(int argc, char* argv[]) {
 
      if(argc < 1){
          emitError("Use: rv32i_sim <machine_code_file_name>");
+     }else if(argc == 3){
+        puts("loading breakpoints");
+     	loadBreakpoints(argv[2]);
      }
 
      inFile.open(argv[1], ios::in | ios::binary | ios::ate);
@@ -128,12 +134,13 @@ int main(int argc, char* argv[]) {
          }
 
          while(!terminated) {
+            checkForBreakpoints();
+            updateTimer();
+
             instWord = 	readInstruction();  // read next instruction
             pc += 4;    // increment pc by 4
             instDecExec(instWord);
             regs[0] = 0;
-
-            updateTimer();
          }
 
          // check if terminated correcctly
@@ -913,11 +920,11 @@ void SYS_Inst(int rd, int rs1, int imm, int func)
 
 void timerInterrupt()
 {
-    if(uie == 0x3){ // global and timer interrupt enabled
-        uie = uie & 0xfffe; // turn off global interrupts
-        epc = pc;
-        pc = 48;
-    }
+   // if(uie == 0x3){ // global and timer interrupt enabled
+    uie = uie & 0xfffe; // turn off global interrupts
+    epc = pc;
+    pc = 48;
+    //}
 }
 
 void URET()
@@ -932,4 +939,55 @@ void EBREAK()
     epc = pc;
     pc = 32;
     uie = uie & 0xfffe; // turn off global interrupts
+}
+
+void loadBreakpoints(char *file)
+{
+	std::ifstream fs(file);
+	if(!fs.is_open()){
+		puts("failed to load break points");
+		exit(-1);
+	}
+	
+    do{
+        
+	    int address;
+		fs>>address;
+        printf("INPUT: %d\n",address);
+		
+        if(fs.eof()){
+			fs.close();
+		}else{
+			breakpoints.insert(address);
+            printf("breakpoint at  %d\n", address);
+		}
+	}while(fs.is_open());
+}
+
+void checkForBreakpoints()
+{
+    if(breakpoints.count(pc)){
+        // printf("---BREAKPOINT-----%08x----------------------------------\n", pc);
+        //     for(int i = 0; i < 32; ++i)
+        //         printf("REG %d \t %08x\n",i, regs[i]);
+            
+        //     printf("REG UIE \t %08x\n", uie);
+        //     printf("REG EPC \t %08x\n", epc);
+        //     printf("REG TIMER \t %08x\n", timer);
+        //     // cout<<"REG UIE"<<"\t"<<uie<<endl;
+        //     // cout<<"REG EPC"<<"\t"<<epc<<endl;
+        //     // cout<<"REG TIMER"<<"\t"<<timer<<endl;
+
+        // printf("---END---BREAKPOINT-----------------------------------\n");
+
+        void *ptr = memory + 13776;
+        int *num = (int *) ptr;
+
+        puts("final test array");
+        for(int i = 0; i < 150; ++i){
+            printf("%d\n", num[i]);
+        }
+
+        exit(0);
+    }
 }
