@@ -72,6 +72,11 @@ void task_a_body(void *par)
     while(1);
 }
 
+tn_rv32_soft_isr(EXTERNAL_ISR_1)
+{
+    
+}
+
 // void task_b_body(void *par)
 // {
 //     int hello2 = 0;

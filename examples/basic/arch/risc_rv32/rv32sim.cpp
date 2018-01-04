@@ -126,7 +126,7 @@ int main(int argc, char* argv[]) {
         puts("loading breakpoints");
      	loadBreakpoints(argv[2]);
      }else if(argc == 4){
-         puts("loading breakpoints");
+         puts("loading breakpoints & externalInterrupt locations");
      	loadBreakpoints(argv[2]);
         loadExternalInterrupts(argv[3]);
      }
@@ -983,14 +983,14 @@ void loadExternalInterrupts(char *file)
 	
     do{
         
-	    int address, number;
-		fs>>address>>number;
+	    int address, interruptNumber;
+		fs>>address>>interruptNumber;
         printf("INPUT: %d\n",address);
 		
         if(fs.eof()){
 			fs.close();
 		}else{
-			externalInterrupts[address] = number;
+			externalInterrupts[address] = interruptNumber;
             printf("breakpoint at  %d\n", address);
 		}
 	}while(fs.is_open());
@@ -1026,9 +1026,19 @@ void checkForBreakpoints()
 
 void checkForExternalInterrupts()
 {
-    if(externalInterrupts.count(pc) && (uie & 1) == 1){
+    if((uie & 1) == 0 || externalInterrupts.empty()) 
+        return;
+    
+    int i, uieTmp = uie>>3;
+    for(i = 0; i < 15; ++i, uieTmp >>=1){
+        if(uieTmp & 1 == 1){
+            break;
+        }
+    }
+
+    if(i < 15){ // external interrupt flag on
         uie = uie & 0xfffe; // turn off global interrupts
         epc = pc;
-        pc = 0x44;
+        pc = 64 + i * 4; //jump to address
     }
 }

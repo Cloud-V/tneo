@@ -78,7 +78,7 @@ _tn_arch_timer_vector:
     
 /** .section .extern_int_vector: **/
 _tn_arch_extern_int_vector:
-    nop
+    j _isr_extern_isr_1_handler
     nop
     nop
     nop

@@ -273,10 +273,29 @@ typedef  unsigned int               TN_UIntPtr;
 void *tn_rv32_user_sp;
 void *tn_rv32_int_sp;
 
+#define EXTERNAL_ISR_1 _extern_isr_1_handler
+#define EXTERNAL_ISR_2 _extern_isr_2_handler
+#define EXTERNAL_ISR_3 _extern_isr_3_handler
+#define EXTERNAL_ISR_4 _extern_isr_4_handler
 
-#define tn_rv32_soft_isr(vec)                                                   \
+#define EXTERNAL_ISR_5 _extern_isr_5_handler
+#define EXTERNAL_ISR_6 _extern_isr_6_handler
+#define EXTERNAL_ISR_7 _extern_isr_7_handler
+#define EXTERNAL_ISR_8 _extern_isr_8_handler
+
+#define EXTERNAL_ISR_9 _extern_isr_9_handler
+#define EXTERNAL_ISR_10 _extern_isr_10_handler
+#define EXTERNAL_ISR_11 _extern_isr_11_handler
+#define EXTERNAL_ISR_12 _extern_isr_12_handler
+
+#define EXTERNAL_ISR_13 _extern_isr_13_handler
+#define EXTERNAL_ISR_14 _extern_isr_14_handler
+#define EXTERNAL_ISR_15 _extern_isr_15_handler
+#define EXTERNAL_ISR_16 _extern_isr_16_handler
+
+#define tn_rv32_soft_isr(vec)                                                  \
 __attribute__((__noinline__)) void _func##vec(void);                           \
-void __attribute__((naked))                                              \
+void __attribute__((naked))                                                    \
      _isr##vec(void)                                                           \
 {                                                                              \
     asm volatile("addi sp, sp, -132");                                         \
