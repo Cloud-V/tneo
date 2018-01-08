@@ -9,9 +9,9 @@
 #define INTERRUPT_STACK_SIZE          (TN_MIN_STACK_SIZE + 64)
 
 //-- stack sizes of user tasks
-#define TASK_A_STK_SIZE    (TN_MIN_STACK_SIZE + 500)
-#define TASK_B_STK_SIZE    (TN_MIN_STACK_SIZE + 96)
-#define TASK_C_STK_SIZE    (TN_MIN_STACK_SIZE + 96)
+#define TASK_A_STK_SIZE    (TN_MIN_STACK_SIZE + 96)
+//#define TASK_B_STK_SIZE    (TN_MIN_STACK_SIZE + 96)
+//#define TASK_C_STK_SIZE    (TN_MIN_STACK_SIZE + 96)
 
 //-- user task priorities
 #define TASK_A_PRIORITY    7
@@ -72,11 +72,6 @@ void task_a_body(void *par)
     while(1);
 }
 
-tn_rv32_soft_isr(EXTERNAL_ISR_1)
-{
-    
-}
-
 // void task_b_body(void *par)
 // {
 //     int hello2 = 0;
@@ -126,11 +121,6 @@ void idle_task_callback(void)
 
 }
 
-tn_rv32_soft_isr(hello)
-{
-    
-}
-
 
 //-- create first application task(s)
 void init_task_create(void)
@@ -148,10 +138,17 @@ void init_task_create(void)
          );
 }
 
+void test_one()
+{
+
+}
+
 int main(void)
 {
    //-- unconditionally disable interrupts
    tn_arch_int_dis();
+
+    tn_rv32_soft_isr(test_one, 0);
 
    //-- call to tn_sys_start() never returns
    tn_sys_start(

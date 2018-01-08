@@ -5,12 +5,12 @@
 
 
 /* External references */
-
-.extern  tn_rv32_user_sp
-.extern  tn_rv32_int_sp
-.extern  _tn_curr_run_task
-.extern  _tn_next_task_to_run
-.extern  _tn_sys_on_context_switch
+.extern extern_isr_lookup_table
+.extern tn_rv32_user_sp
+.extern tn_rv32_int_sp
+.extern _tn_curr_run_task
+.extern _tn_next_task_to_run
+.extern _tn_sys_on_context_switch
 .extern tn_tick_int_processing
 
 
@@ -78,22 +78,22 @@ _tn_arch_timer_vector:
     
 /** .section .extern_int_vector: **/
 _tn_arch_extern_int_vector:
-    j _isr_extern_isr_1_handler
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    nop
-    uret
+    j execute_external_isr
+    j execute_external_isr
+    j execute_external_isr
+    j execute_external_isr
+    j execute_external_isr
+    j execute_external_isr
+    j execute_external_isr
+    j execute_external_isr
+    j execute_external_isr
+    j execute_external_isr
+    j execute_external_isr
+    j execute_external_isr
+    j execute_external_isr
+    j execute_external_isr
+    j execute_external_isr
+    j execute_external_isr
 
 boot_strap:
 	li      x4, 0x7 #{eie, tie, gie}
@@ -108,10 +108,67 @@ boot_strap:
 
 /* constants */
 .equ context_size, 132
-
+/* registers that gcc does not recognise by name for now */
+.equ uie, 0x4
+.equ ustatus, 0x42
+.equ timer, 0xc01
 /* function implementations*/
 
 
+/** saves context and then uses a lookup table to locate the appropriate isr
+**/
+execute_external_isr:
+    addi sp, sp, -context_size
+
+    #store all general purpose registers to the stack
+    sw x1, 0(sp)
+    sw x3, 8(sp)
+    sw x4, 12(sp)
+    sw x5, 16(sp)
+    sw x6, 20(sp)
+    sw x7, 24(sp)
+    sw x8, 28(sp)
+    sw x9, 32(sp)
+    sw x10, 36(sp)
+    sw x11, 40(sp)
+    sw x12, 44(sp)
+    sw x13, 48(sp)
+    sw x14, 52(sp)
+    sw x15, 56(sp)
+    sw x16, 60(sp)
+    sw x17, 64(sp)
+    sw x18, 68(sp)
+    sw x19, 72(sp)
+    sw x20, 76(sp)
+    sw x21, 80(sp)
+    sw x22, 84(sp)
+    sw x23, 88(sp)
+    sw x24, 92(sp)
+    sw x25, 96(sp)
+    sw x26, 100(sp)
+    sw x27, 104(sp)
+    sw x28, 108(sp)
+    sw x29, 112(sp)
+    sw x30, 116(sp)
+    sw x31, 120(sp)
+
+    /* save task stack pointer and switch to interrupt stack */
+    la t0, tn_rv32_user_sp
+    sw sp, 0(t0)
+    lw sp, tn_rv32_int_sp
+
+    /* find isr responsible to handling the interrupt*/
+    csrrw t0, ustatus, x0
+    la t1, extern_isr_lookup_table
+    add t1, t1, t0
+    lw t1, 0(t1)
+
+    /* jump to the appropriate isr */
+    jalr t1 
+    
+    /* return to user task stack   */
+    lw sp, tn_rv32_user_sp 
+    j tn_restore_context
 
 /*
 * ------------------------------------------------------------------------

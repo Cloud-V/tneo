@@ -16,6 +16,7 @@ const int regCount = 32;
 int regs[regCount] = {0};
 int uie = 0;
 int timer = 0;
+int ucause = 0; 
 int epc = 0; // register used by uret
 unsigned int pc = 0x0;
 const unsigned int RAM = 64 * 1024; // only 8KB of memory located at address 0
@@ -913,7 +914,11 @@ void SYS_Inst(int rd, int rs1, int imm, int func)
             regs[rd] = epc;
             epc = tmp;
 			printf("\nEPC UPDATED with %d\n", epc);
-		}else{
+		}else if(imm == 0x42){
+            int tmp = regs[rs1];
+            regs[rd] = uie;
+            ucause = tmp;
+        }else{
             printf("\nimmediate %d\n",imm);
             puts("Accessing unimplemented control/status register");
             throw "Accessing unimplemented control/status register";
@@ -1040,5 +1045,6 @@ void checkForExternalInterrupts()
         uie = uie & 0xfffe; // turn off global interrupts
         epc = pc;
         pc = 64 + i * 4; //jump to address
+        ucause = i;
     }
 }
