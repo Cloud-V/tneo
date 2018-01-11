@@ -5,6 +5,7 @@
 
 
 /* External references */
+.extern tick_rate
 .extern extern_isr_lookup_table
 .extern tn_rv32_user_sp
 .extern tn_rv32_int_sp
@@ -159,6 +160,7 @@ execute_external_isr:
 
     /* find isr responsible to handling the interrupt*/
     csrrw t0, ustatus, x0
+    slli t0, t0, 2		# multiply by 4 to account for ptr size
     la t1, extern_isr_lookup_table
     add t1, t1, t0
     lw t1, 0(t1)
@@ -219,7 +221,7 @@ tn_arch_int_en:
 */
 tn_arch_enable_timer:
    # sw t0, -4(sp)
-    addi t0, x0, 0x7ff
+    lw t0, tick_rate;
     csrrw x0, 0xc01, t0
     # lw t0, -4(sp)
     ret

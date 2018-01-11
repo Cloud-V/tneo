@@ -6,16 +6,9 @@
  #include "_tn_sys.h"
 
 /*******************************************************************************
-*    EXTERNAL DATA
-******************************************************************************/
- 
- //-- gp: provided by linker
-//  extern unsigned long _gp;
-
-/*******************************************************************************
  *    PROTECTED DATA
  ******************************************************************************/
-
+unsigned int tick_rate = 0xffffffff;
 
 // tn_arch 
 void tn_arch_enable_timer();
@@ -79,4 +72,9 @@ void tn_arch_enable_timer();
 
     _TN_UNUSED(stack_low_addr);
     return cur_stack_pt;
+}
+
+void setTimerPeriod(unsigned int tn_tick_rate)
+{
+    tick_rate = tn_tick_rate;
 }

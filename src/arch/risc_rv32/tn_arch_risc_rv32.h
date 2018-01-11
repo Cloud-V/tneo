@@ -270,6 +270,7 @@ typedef  unsigned int               TN_UIntPtr;
  * interrupt stack pointer
  * 
  */
+
 void *tn_rv32_user_sp;
 void *tn_rv32_int_sp;
 void (*extern_isr_lookup_table[16]);
@@ -277,7 +278,7 @@ void (*extern_isr_lookup_table[16]);
 #define tn_rv32_soft_isr(vec, number)       \
     extern_isr_lookup_table[number] = vec;  
 
-
+void setTimerPeriod(unsigned int tn_tick_rate);
 
 #ifdef __cplusplus
 }  /* extern "C" */
