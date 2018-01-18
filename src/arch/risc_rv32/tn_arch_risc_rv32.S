@@ -188,17 +188,17 @@ _tn_arch_context_switch_now_nosave:
     lw x6, _tn_next_task_to_run         /* x6 = _tn_next_task_to_run */
 
 
-// #if _TN_ON_CONTEXT_SWITCH_HANDLER
-//     lw a0, 0(x5)                 /* a0 = _tn_curr_run_task */
-//     add a1, x6, zero             /* a1 =  _tn_next_task_to_run */
+ #if _TN_ON_CONTEXT_SWITCH_HANDLER
+     lw a0, 0(x5)                 /* a0 = _tn_curr_run_task */
+     add a1, x6, zero             /* a1 =  _tn_next_task_to_run */
 
-//    /* 
-//     * arguments are set:
-//     * - a0: _tn_curr_run_task
-//     * - a1: _tn_next_task_to_run
-//     */
-//     jal _tn_sys_on_context_switch
-// #endif
+    /* 
+     * arguments are set:
+     * - a0: _tn_curr_run_task
+     * - a1: _tn_next_task_to_run
+     */
+     jal _tn_sys_on_context_switch
+ #endif
 
 
     lw sp, 0(x6)                        /* set sp to next task's stack */
@@ -297,14 +297,14 @@ _tn_arch_is_int_disabled:
     add a1, t1, zero                # a1 = _tn_next_task_to_run
     lw sp, 0(t1)                    # load sp of task to run
 
-//  #if _TN_ON_CONTEXT_SWITCH_HANDLER
-//      /* 
-//      * arguments are set:
-//      * - a0: _tn_curr_run_task
-//      * - a1: _tn_next_task_to_run
-//      */
-//      jal     _tn_sys_on_context_switch
-//  #endif
+  #if _TN_ON_CONTEXT_SWITCH_HANDLER
+      /* 
+      * arguments are set:
+      * - a0: _tn_curr_run_task
+      * - a1: _tn_next_task_to_run
+      */
+      jal     _tn_sys_on_context_switch
+  #endif
 
     sw  t1, 0(t0)            /* _tn_curr_run_task = _tn_next_task_to_run */
 
