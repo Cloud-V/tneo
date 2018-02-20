@@ -1,4 +1,4 @@
-riscv64-unknown-elf-gcc -c main.c -I /home/hasebou/projects/tneo/src/  -D __RISC_V_RV32i__ -march=rv32i -mabi=ilp32 -nostartfiles -nostdlib
+riscv64-unknown-elf-gcc -c main.c -I pathto/tneo/src/  -D __RISC_V_RV32i__ -march=rv32i -mabi=ilp32 -nostartfiles -nostdlib
 
 riscv64-unknown-elf-ld main.o tneo_rv32i_riscv64-unknown-elf-gcc.a -T link.ld -o main -melf32lriscv 
 #-M --strip-all
